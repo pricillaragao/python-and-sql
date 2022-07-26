@@ -55,3 +55,11 @@ CREATE TABLE IF NOT EXISTS order_items(
     freight_value MONEY NOT NULL,
     UNIQUE(order_id, order_item_id)
 );
+
+CREATE TABLE IF NOT EXISTS order_payments(
+    order_id CHAR(32) REFERENCES orders(id),
+    payment_sequential INT NOT NULL,
+    payment_type TEXT NOT NULL,
+    installments INT NOT NULL,
+    payment_value MONEY NOT NULL
+)
