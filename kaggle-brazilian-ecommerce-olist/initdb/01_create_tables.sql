@@ -51,15 +51,15 @@ CREATE TABLE IF NOT EXISTS order_items(
     product_id CHAR(32) REFERENCES products(id),
     seller_id CHAR(32) REFERENCES sellers(id),
     limit_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    price MONEY NOT NULL,
-    freight_value MONEY NOT NULL,
+    price DECIMAL NOT NULL,
+    freight_value DECIMAL NOT NULL,
     UNIQUE(order_id, order_item_id)
 );
 
 CREATE TABLE IF NOT EXISTS order_payments(
     order_id CHAR(32) REFERENCES orders(id),
-    payment_sequential INT NOT NULL,
-    payment_type TEXT NOT NULL,
+    sequential INT NOT NULL,
+    type TEXT NOT NULL,
     installments INT NOT NULL,
-    payment_value MONEY NOT NULL
+    payment_value DECIMAL NOT NULL
 )

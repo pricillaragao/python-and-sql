@@ -248,7 +248,7 @@ def _import_order_items(conn):
 def _import_order_payments(conn):
     print("[import_data] Importing order payments...")
     filepath = os.path.join(DATASET_DIR, "olist_order_payments_dataset.csv")
-    sql = "INSERT INTO order_payments(order_id, payment_sequential, payment_type, installments, payment_value) VALUES %s;"
+    sql = "INSERT INTO order_payments(order_id, sequential, type, installments, payment_value) VALUES %s;"
     data = []
     with open(filepath) as csvfile:
         reader = csv.DictReader(csvfile)
