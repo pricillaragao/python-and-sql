@@ -8,6 +8,7 @@ authors = ["Pricilla Patricia de Aragao <pricillapatricia@gmail.com>"]
 python = "^3.10"
 psycopg2-binary = "^2.9.3"
 python-dotenv = "^0.20.0"
+Shapely = "^1.8.2"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"

@@ -3,6 +3,8 @@ import csv
 import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
+from psycopg2.extensions import adapt, register_adapter, AsIs
+from shapely.geometry import Point
 
 DATASET_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
@@ -47,6 +49,7 @@ def main():
 def _import_data(conn):
     print("[import_data] Start...")
     _import_customers(conn=conn)
+    _import_geolocation(conn=conn)
     print("[import_data] Finished successfully!")
 
 
@@ -73,3 +76,38 @@ def _import_customers(conn):
     conn.commit()
     cursor.close()
     print("[import_data] Importing customers finished successfully!")
+
+
+def _import_geolocation(conn):
+    def adapt_point(point: Point):
+        def quote(v):
+            return adapt(v).getquoted().decode()
+
+        x, y = quote(point.x), quote(point.y)
+        return AsIs("'(%s, %s)'" % (x, y))
+
+    print("[import_data] Importing geolocation...")
+    register_adapter(Point, adapt_point)
+    filepath = os.path.join(DATASET_DIR, "olist_geolocation_dataset.csv")
+    sql = (
+        "INSERT INTO geolocation(zip_code_prefix, coordinates, city, state) VALUES %s;"
+    )
+    data = []
+    with open(filepath) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            coordinate = Point(
+                float(row["geolocation_lat"]), float(row["geolocation_lng"])
+            )
+            data_row = (
+                row["geolocation_zip_code_prefix"],
+                coordinate,
+                row["geolocation_city"],
+                row["geolocation_state"],
+            )
+            data.append(data_row)
+    cursor = conn.cursor()
+    psycopg2.extras.execute_values(cursor, sql, data)
+    conn.commit()
+    cursor.close()
+    print("[import_data] Importing geolocation finished successfully!")
