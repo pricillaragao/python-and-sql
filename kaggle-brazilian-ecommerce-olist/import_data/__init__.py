@@ -2,6 +2,7 @@ import os
 import csv
 import psycopg2
 import psycopg2.extras
+from typing import Dict
 from decimal import Decimal
 from dotenv import load_dotenv
 from psycopg2.extensions import adapt, register_adapter, AsIs
@@ -148,16 +149,26 @@ def _import_products(conn):
         else:
             return None
 
+    def get_category_name_translations() -> Dict:
+        filepath = os.path.join(DATASET_DIR, "product_category_name_translation.csv")
+        translations = {}
+        with open(filepath) as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                translations[row[0]] = row[1]
+        return translations
+
     print("[import_data] Importing products...")
     filepath = os.path.join(DATASET_DIR, "olist_products_dataset.csv")
     sql = "INSERT INTO products(id, category_name, name_length, description_length, photos_qty, weight_g, length_cm, height_cm, width_cm) VALUES %s;"
     data = []
     with open(filepath) as csvfile:
         reader = csv.DictReader(csvfile)
+        category_name_translations = get_category_name_translations()
         for row in reader:
             data_row = (
                 row["product_id"],
-                row["product_category_name"],
+                category_name_translations.get(row["product_category_name"]),
                 as_int_or_none(row["product_name_length"]),
                 as_int_or_none(row["product_description_length"]),
                 as_int_or_none(row["product_photos_qty"]),
