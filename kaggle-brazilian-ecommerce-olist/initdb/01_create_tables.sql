@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS sellers(
 
 CREATE TABLE IF NOT EXISTS products(
     id CHAR(32) PRIMARY KEY,
-    category_name TEXT NOT NULL,
+    category_name TEXT,
     name_length INT,
     description_length INT,
     photos_qty INT,
