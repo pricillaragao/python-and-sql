@@ -36,11 +36,22 @@ CREATE TABLE IF NOT EXISTS products(
 
 CREATE TABLE IF NOT EXISTS orders(
     id CHAR(32) PRIMARY KEY,
-    customer_id CHAR(32) NOT NULL, -- REFERENCES customers(id) does not work because some customer_ids are not present in the customers table
+    customer_id CHAR(32) REFERENCES customers(id),
     status TEXT NOT NULL,
     purchase_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     approved_at TIMESTAMP WITH TIME ZONE,
     delivered_carrier_date TIMESTAMP WITH TIME ZONE,
     delivered_customer_date TIMESTAMP WITH TIME ZONE,
     estimated_delivery_date TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE IF NOT EXISTS order_items(
+    order_id CHAR(32) REFERENCES orders(id),
+    order_item_id INT NOT NULL,
+    product_id CHAR(32) REFERENCES products(id),
+    seller_id CHAR(32) REFERENCES sellers(id),
+    limit_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    price MONEY NOT NULL,
+    freight_value MONEY NOT NULL,
+    UNIQUE(order_id, order_item_id)
 );
