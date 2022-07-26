@@ -48,34 +48,10 @@ def main():
 
 def _import_data(conn):
     print("[import_data] Start...")
-    _import_customers(conn=conn)
     _import_geolocation(conn=conn)
+    _import_customers(conn=conn)
+    _import_sellers(conn=conn)
     print("[import_data] Finished successfully!")
-
-
-def _import_customers(conn):
-    print("[import_data] Importing customers...")
-    filepath = os.path.join(DATASET_DIR, "olist_customers_dataset.csv")
-    sql = (
-        "INSERT INTO customers(id, unique_id, zip_code_prefix, city, state) VALUES %s;"
-    )
-    data = []
-    with open(filepath) as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            data_row = (
-                row["customer_id"],
-                row["customer_unique_id"],
-                row["customer_zip_code_prefix"],
-                row["customer_city"],
-                row["customer_state"],
-            )
-            data.append(data_row)
-    cursor = conn.cursor()
-    psycopg2.extras.execute_values(cursor, sql, data)
-    conn.commit()
-    cursor.close()
-    print("[import_data] Importing customers finished successfully!")
 
 
 def _import_geolocation(conn):
@@ -111,3 +87,50 @@ def _import_geolocation(conn):
     conn.commit()
     cursor.close()
     print("[import_data] Importing geolocation finished successfully!")
+
+
+def _import_customers(conn):
+    print("[import_data] Importing customers...")
+    filepath = os.path.join(DATASET_DIR, "olist_customers_dataset.csv")
+    sql = (
+        "INSERT INTO customers(id, unique_id, zip_code_prefix, city, state) VALUES %s;"
+    )
+    data = []
+    with open(filepath) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data_row = (
+                row["customer_id"],
+                row["customer_unique_id"],
+                row["customer_zip_code_prefix"],
+                row["customer_city"],
+                row["customer_state"],
+            )
+            data.append(data_row)
+    cursor = conn.cursor()
+    psycopg2.extras.execute_values(cursor, sql, data)
+    conn.commit()
+    cursor.close()
+    print("[import_data] Importing customers finished successfully!")
+
+
+def _import_sellers(conn):
+    print("[import_data] Importing sellers...")
+    filepath = os.path.join(DATASET_DIR, "olist_sellers_dataset.csv")
+    sql = "INSERT INTO sellers(id, zip_code_prefix, city, state) VALUES %s;"
+    data = []
+    with open(filepath) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data_row = (
+                row["seller_id"],
+                row["seller_zip_code_prefix"],
+                row["seller_city"],
+                row["seller_state"],
+            )
+            data.append(data_row)
+    cursor = conn.cursor()
+    psycopg2.extras.execute_values(cursor, sql, data)
+    conn.commit()
+    cursor.close()
+    print("[import_data] Importing sellers finished successfully!")
