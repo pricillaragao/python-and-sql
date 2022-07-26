@@ -33,3 +33,14 @@ CREATE TABLE IF NOT EXISTS products(
     height_cm INT,
     width_cm INT
 );
+
+CREATE TABLE IF NOT EXISTS orders(
+    id CHAR(32) PRIMARY KEY,
+    customer_id CHAR(32) NOT NULL, -- REFERENCES customers(id) does not work because some customer_ids are not present in the customers table
+    status TEXT NOT NULL,
+    purchase_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    approved_at TIMESTAMP WITH TIME ZONE,
+    delivered_carrier_date TIMESTAMP WITH TIME ZONE,
+    delivered_customer_date TIMESTAMP WITH TIME ZONE,
+    estimated_delivery_date TIMESTAMP WITH TIME ZONE
+);
