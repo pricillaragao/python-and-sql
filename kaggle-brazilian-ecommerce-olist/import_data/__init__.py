@@ -52,6 +52,7 @@ def _import_data(conn):
     _import_customers(conn=conn)
     _import_sellers(conn=conn)
     _import_products(conn=conn)
+    _import_orders(conn=conn)
     print("[import_data] Finished successfully!")
 
 
@@ -168,3 +169,45 @@ def _import_products(conn):
     conn.commit()
     cursor.close()
     print("[import_data] Importing products finished successfully!")
+
+
+def _import_orders(conn):
+    def as_str_or_none(value: str):
+        if value:
+            return value
+        else:
+            return None
+
+    def append_time_zone(timestamp: str):
+        brasilia_time_zone = "-03"
+        return f"{timestamp}{brasilia_time_zone}"
+
+    def with_appended_time_zone_or_none(timestamp: str):
+        if as_str_or_none(timestamp):
+            return append_time_zone(as_str_or_none(timestamp))
+        else:
+            return None
+
+    print("[import_data] Importing orders...")
+    filepath = os.path.join(DATASET_DIR, "olist_orders_dataset.csv")
+    sql = "INSERT INTO orders(id, customer_id, status, purchase_timestamp, approved_at, delivered_carrier_date, delivered_customer_date, estimated_delivery_date) VALUES %s;"
+    data = []
+    with open(filepath) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data_row = (
+                row["order_id"],
+                as_str_or_none(row["customer_id"]),
+                row["order_status"],
+                append_time_zone(row["order_purchase_timestamp"]),
+                with_appended_time_zone_or_none(row["order_approved_at"]),
+                with_appended_time_zone_or_none(row["order_delivered_carrier_date"]),
+                with_appended_time_zone_or_none(row["order_delivered_customer_date"]),
+                with_appended_time_zone_or_none(row["order_estimated_delivery_date"]),
+            )
+            data.append(data_row)
+    cursor = conn.cursor()
+    psycopg2.extras.execute_values(cursor, sql, data)
+    conn.commit()
+    cursor.close()
+    print("[import_data] Importing orders finished successfully!")
