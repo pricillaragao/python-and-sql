@@ -57,6 +57,7 @@ def _import_data(conn):
     _import_orders(conn=conn)
     _import_order_items(conn=conn)
     _import_order_payments(conn=conn)
+    _import_order_reviews(conn=conn)
     print("[import_data] Finished successfully!")
 
 
@@ -186,22 +187,6 @@ def _import_products(conn):
 
 
 def _import_orders(conn):
-    def as_str_or_none(value: str):
-        if value:
-            return value
-        else:
-            return None
-
-    def append_time_zone(timestamp: str):
-        brasilia_time_zone = "-03"
-        return f"{timestamp}{brasilia_time_zone}"
-
-    def with_appended_time_zone_or_none(timestamp: str):
-        if as_str_or_none(timestamp):
-            return append_time_zone(as_str_or_none(timestamp))
-        else:
-            return None
-
     print("[import_data] Importing orders...")
     filepath = os.path.join(DATASET_DIR, "olist_orders_dataset.csv")
     sql = "INSERT INTO orders(id, customer_id, status, purchase_timestamp, approved_at, delivered_carrier_date, delivered_customer_date, estimated_delivery_date) VALUES %s;"
@@ -211,13 +196,13 @@ def _import_orders(conn):
         for row in reader:
             data_row = (
                 row["order_id"],
-                as_str_or_none(row["customer_id"]),
+                _as_str_or_none(row["customer_id"]),
                 row["order_status"],
-                append_time_zone(row["order_purchase_timestamp"]),
-                with_appended_time_zone_or_none(row["order_approved_at"]),
-                with_appended_time_zone_or_none(row["order_delivered_carrier_date"]),
-                with_appended_time_zone_or_none(row["order_delivered_customer_date"]),
-                with_appended_time_zone_or_none(row["order_estimated_delivery_date"]),
+                _append_time_zone(row["order_purchase_timestamp"]),
+                _with_appended_time_zone_or_none(row["order_approved_at"]),
+                _with_appended_time_zone_or_none(row["order_delivered_carrier_date"]),
+                _with_appended_time_zone_or_none(row["order_delivered_customer_date"]),
+                _with_appended_time_zone_or_none(row["order_estimated_delivery_date"]),
             )
             data.append(data_row)
     cursor = conn.cursor()
@@ -228,10 +213,6 @@ def _import_orders(conn):
 
 
 def _import_order_items(conn):
-    def append_time_zone(timestamp: str):
-        brasilia_time_zone = "-03"
-        return f"{timestamp}{brasilia_time_zone}"
-
     print("[import_data] Importing order items...")
     filepath = os.path.join(DATASET_DIR, "olist_order_items_dataset.csv")
     sql = "INSERT INTO order_items(order_id, order_item_id, product_id, seller_id, limit_date, price, freight_value) VALUES %s;"
@@ -244,7 +225,7 @@ def _import_order_items(conn):
                 row["order_item_id"],
                 row["product_id"],
                 row["seller_id"],
-                append_time_zone(row["shipping_limit_date"]),
+                _append_time_zone(row["shipping_limit_date"]),
                 Decimal(row["price"]),
                 Decimal(row["freight_value"]),
             )
@@ -281,3 +262,49 @@ def _import_order_payments(conn):
     conn.commit()
     cursor.close()
     print("[import_data] Importing order payments finished successfully!")
+
+
+def _import_order_reviews(conn):
+    print("[import_data] Importing order reviews...")
+    filepath = os.path.join(DATASET_DIR, "olist_order_reviews_dataset.csv")
+    sql = "INSERT INTO order_reviews(id, order_id, score, comment_title, comment_message, creation_date, answer_timestamp) VALUES %s;"
+    data = []
+    with open(filepath) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data_row = (
+                row["review_id"].strip('"'),
+                row["order_id"].strip('"'),
+                row["review_score"],
+                row["review_comment_title"].strip('"'),
+                row["review_comment_message"].strip('"'),
+                _append_time_zone(row["review_creation_date"].strip('"')),
+                _with_appended_time_zone_or_none(
+                    row["review_answer_timestamp"].strip('"')
+                ),
+            )
+            data.append(data_row)
+    cursor = conn.cursor()
+    psycopg2.extras.execute_values(cursor, sql, data)
+    conn.commit()
+    cursor.close()
+    print("[import_data] Importing order items reviews successfully!")
+
+
+def _as_str_or_none(value: str):
+    if value:
+        return value
+    else:
+        return None
+
+
+def _append_time_zone(timestamp: str):
+    brasilia_time_zone = "-03"
+    return f"{timestamp}{brasilia_time_zone}"
+
+
+def _with_appended_time_zone_or_none(timestamp: str):
+    if _as_str_or_none(timestamp):
+        return _append_time_zone(_as_str_or_none(timestamp))
+    else:
+        return None
