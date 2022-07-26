@@ -2,6 +2,7 @@ import os
 import csv
 import psycopg2
 import psycopg2.extras
+from decimal import Decimal
 from dotenv import load_dotenv
 from psycopg2.extensions import adapt, register_adapter, AsIs
 from shapely.geometry import Point
@@ -53,6 +54,7 @@ def _import_data(conn):
     _import_sellers(conn=conn)
     _import_products(conn=conn)
     _import_orders(conn=conn)
+    _import_order_items(conn=conn)
     print("[import_data] Finished successfully!")
 
 
@@ -211,3 +213,44 @@ def _import_orders(conn):
     conn.commit()
     cursor.close()
     print("[import_data] Importing orders finished successfully!")
+
+
+def _import_order_items(conn):
+    def as_str_or_none(value: str):
+        if value:
+            return value
+        else:
+            return None
+
+    def append_time_zone(timestamp: str):
+        brasilia_time_zone = "-03"
+        return f"{timestamp}{brasilia_time_zone}"
+
+    def with_appended_time_zone_or_none(timestamp: str):
+        if as_str_or_none(timestamp):
+            return append_time_zone(as_str_or_none(timestamp))
+        else:
+            return None
+
+    print("[import_data] Importing order items...")
+    filepath = os.path.join(DATASET_DIR, "olist_order_items_dataset.csv")
+    sql = "INSERT INTO order_items(order_id, order_item_id, product_id, seller_id, limit_date, price, freight_value) VALUES %s;"
+    data = []
+    with open(filepath) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data_row = (
+                row["order_id"],
+                row["order_item_id"],
+                row["product_id"],
+                row["seller_id"],
+                append_time_zone(row["shipping_limit_date"]),
+                Decimal(row["price"]),
+                Decimal(row["freight_value"]),
+            )
+            data.append(data_row)
+    cursor = conn.cursor()
+    psycopg2.extras.execute_values(cursor, sql, data)
+    conn.commit()
+    cursor.close()
+    print("[import_data] Importing order items finished successfully!")
