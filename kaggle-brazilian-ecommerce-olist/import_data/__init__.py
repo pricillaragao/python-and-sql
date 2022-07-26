@@ -55,6 +55,7 @@ def _import_data(conn):
     _import_products(conn=conn)
     _import_orders(conn=conn)
     _import_order_items(conn=conn)
+    _import_order_payments(conn=conn)
     print("[import_data] Finished successfully!")
 
 
@@ -216,21 +217,9 @@ def _import_orders(conn):
 
 
 def _import_order_items(conn):
-    def as_str_or_none(value: str):
-        if value:
-            return value
-        else:
-            return None
-
     def append_time_zone(timestamp: str):
         brasilia_time_zone = "-03"
         return f"{timestamp}{brasilia_time_zone}"
-
-    def with_appended_time_zone_or_none(timestamp: str):
-        if as_str_or_none(timestamp):
-            return append_time_zone(as_str_or_none(timestamp))
-        else:
-            return None
 
     print("[import_data] Importing order items...")
     filepath = os.path.join(DATASET_DIR, "olist_order_items_dataset.csv")
@@ -254,3 +243,26 @@ def _import_order_items(conn):
     conn.commit()
     cursor.close()
     print("[import_data] Importing order items finished successfully!")
+
+
+def _import_order_payments(conn):
+    print("[import_data] Importing order payments...")
+    filepath = os.path.join(DATASET_DIR, "olist_order_payments_dataset.csv")
+    sql = "INSERT INTO order_payments(order_id, payment_sequential, payment_type, installments, payment_value) VALUES %s;"
+    data = []
+    with open(filepath) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data_row = (
+                row["order_id"],
+                row["payment_sequential"],
+                row["payment_type"],
+                row["payment_installments"],
+                Decimal(row["payment_value"]),
+            )
+            data.append(data_row)
+    cursor = conn.cursor()
+    psycopg2.extras.execute_values(cursor, sql, data)
+    conn.commit()
+    cursor.close()
+    print("[import_data] Importing order payments finished successfully!")
