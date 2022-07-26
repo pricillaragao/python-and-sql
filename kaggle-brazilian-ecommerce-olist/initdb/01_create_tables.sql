@@ -71,4 +71,16 @@ CREATE TABLE IF NOT EXISTS order_payments(
     installments INT NOT NULL,
     payment_value DECIMAL NOT NULL,
     currency_code CHAR(3) REFERENCES iso_4217_currency_codes
-)
+);
+
+CREATE TABLE IF NOT EXISTS order_reviews(
+    id CHAR(32), -- Not a PRIMARY KEY because there are duplicates ids with different row data in the dataset
+    order_id CHAR(32) REFERENCES orders(id),
+    score INT NOT NULL,
+    comment_title TEXT,
+    comment_message TEXT,
+    creation_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    answer_timestamp TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX id_idx ON order_reviews(id);
