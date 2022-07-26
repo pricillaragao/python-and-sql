@@ -51,6 +51,7 @@ def _import_data(conn):
     _import_geolocation(conn=conn)
     _import_customers(conn=conn)
     _import_sellers(conn=conn)
+    _import_products(conn=conn)
     print("[import_data] Finished successfully!")
 
 
@@ -134,3 +135,36 @@ def _import_sellers(conn):
     conn.commit()
     cursor.close()
     print("[import_data] Importing sellers finished successfully!")
+
+
+def _import_products(conn):
+    def as_int_or_none(value: str):
+        if value:
+            return int(value)
+        else:
+            return None
+
+    print("[import_data] Importing products...")
+    filepath = os.path.join(DATASET_DIR, "olist_products_dataset.csv")
+    sql = "INSERT INTO products(id, category_name, name_length, description_length, photos_qty, weight_g, length_cm, height_cm, width_cm) VALUES %s;"
+    data = []
+    with open(filepath) as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            data_row = (
+                row["product_id"],
+                row["product_category_name"],
+                as_int_or_none(row["product_name_length"]),
+                as_int_or_none(row["product_description_length"]),
+                as_int_or_none(row["product_photos_qty"]),
+                as_int_or_none(row["product_weight_g"]),
+                as_int_or_none(row["product_length_cm"]),
+                as_int_or_none(row["product_height_cm"]),
+                as_int_or_none(row["product_width_cm"]),
+            )
+            data.append(data_row)
+    cursor = conn.cursor()
+    psycopg2.extras.execute_values(cursor, sql, data)
+    conn.commit()
+    cursor.close()
+    print("[import_data] Importing products finished successfully!")
