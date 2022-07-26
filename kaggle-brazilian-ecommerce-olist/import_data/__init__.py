@@ -45,15 +45,17 @@ def main():
 
 
 def _import_data(conn):
-    print("Importing data start...")
+    print("[import_data] Start...")
     _import_customers(conn=conn)
-    print("Importing data finished successfully!")
+    print("[import_data] Finished successfully!")
 
 
 def _import_customers(conn):
-    print("Importing customers...")
+    print("[import_data] Importing customers...")
     filepath = os.path.join(DATASET_DIR, "olist_customers_dataset.csv")
-    sql = "INSERT INTO customers(customer_id, customer_unique_id, customer_zip_code_prefix, customer_city, customer_state) VALUES %s;"
+    sql = (
+        "INSERT INTO customers(id, unique_id, zip_code_prefix, city, state) VALUES %s;"
+    )
     data = []
     with open(filepath) as csvfile:
         reader = csv.DictReader(csvfile)
@@ -70,4 +72,4 @@ def _import_customers(conn):
     psycopg2.extras.execute_values(cursor, sql, data)
     conn.commit()
     cursor.close()
-    print("Importing customers finished successfully!")
+    print("[import_data] Importing customers finished successfully!")
