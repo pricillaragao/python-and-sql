@@ -246,9 +246,12 @@ def _import_order_items(conn):
 
 
 def _import_order_payments(conn):
+    def get_brazilian_real_currency_code():
+        return "BRL"
+
     print("[import_data] Importing order payments...")
     filepath = os.path.join(DATASET_DIR, "olist_order_payments_dataset.csv")
-    sql = "INSERT INTO order_payments(order_id, sequential, type, installments, payment_value) VALUES %s;"
+    sql = "INSERT INTO order_payments(order_id, sequential, type, installments, payment_value, currency_code) VALUES %s;"
     data = []
     with open(filepath) as csvfile:
         reader = csv.DictReader(csvfile)
@@ -259,6 +262,7 @@ def _import_order_payments(conn):
                 row["payment_type"],
                 row["payment_installments"],
                 Decimal(row["payment_value"]),
+                get_brazilian_real_currency_code(),
             )
             data.append(data_row)
     cursor = conn.cursor()

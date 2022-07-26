@@ -56,10 +56,19 @@ CREATE TABLE IF NOT EXISTS order_items(
     UNIQUE(order_id, order_item_id)
 );
 
+CREATE TABLE IF NOT EXISTS iso_4217_currency_codes(
+    code CHAR(3) PRIMARY KEY,
+    num SMALLINT UNIQUE,
+    currency TEXT NOT NULL
+);
+
+INSERT INTO iso_4217_currency_codes(code, num, currency) VALUES('BRL', 986, 'Brazilian real');
+
 CREATE TABLE IF NOT EXISTS order_payments(
     order_id CHAR(32) REFERENCES orders(id),
     sequential INT NOT NULL,
     type TEXT NOT NULL,
     installments INT NOT NULL,
-    payment_value DECIMAL NOT NULL
+    payment_value DECIMAL NOT NULL,
+    currency_code CHAR(3) REFERENCES iso_4217_currency_codes
 )
