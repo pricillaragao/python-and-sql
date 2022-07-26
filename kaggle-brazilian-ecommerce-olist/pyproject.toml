@@ -6,8 +6,11 @@ authors = ["Pricilla Patricia de Aragao <pricillapatricia@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+psycopg2-binary = "^2.9.3"
+python-dotenv = "^0.20.0"
 
 [tool.poetry.dev-dependencies]
+black = "^22.6.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
