@@ -332,3 +332,6 @@ postgres-data
 
 #
 example_writing_to_csv/csv
+
+#
+example_writing_to_json/json
