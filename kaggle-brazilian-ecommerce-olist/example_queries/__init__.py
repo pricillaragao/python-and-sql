@@ -44,6 +44,7 @@ def _example_queries(conn):
     random_customer = random.choice(customers)
     _select_one_customer(conn=conn, customer_id=random_customer[0])
     _biggest_sellers_by_number_of_order_items(conn=conn)
+    _biggest_customer_by_order_prices(conn=conn)
     print("[example_queries] Finished successfully!")
 
 
@@ -86,3 +87,21 @@ def _biggest_sellers_by_number_of_order_items(conn):
     print(
         "[example_queries] Biggest sellers by number of order items finished successfully!"
     )
+
+
+def _biggest_customer_by_order_prices(conn):
+    print("[example_queries] Biggest customer by order prices starting...")
+    sql = """
+        SELECT o.customer_id, SUM(ot.price) as price_sum
+        FROM orders o, order_items ot
+        WHERE o.id = ot.order_id
+        GROUP BY o.customer_id
+        ORDER BY price_sum DESC
+        LIMIT 1;
+    """
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    result = cursor.fetchone()
+    cursor.close()
+    print(result)
+    print("[example_queries] Biggest customer by order prices finished successfully!")
