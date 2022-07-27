@@ -48,6 +48,7 @@ def _example_writing_to_csv(conn):
     if not os.path.isdir(CSV_DIR):
         os.mkdir(CSV_DIR)
     _product_category_average_dimensions(conn=conn)
+    _number_of_orders_by_days_of_week(conn=conn)
     print("[example_writing_to_csv] Finished successfully!")
 
 
@@ -85,4 +86,52 @@ def _product_category_average_dimensions(conn):
                 "avg_width_cm": row[3],
             }
             writer.writerow(row_data)
-    print("[example_writing_to_csv] Product category average dimensions successfully!")
+    print(
+        "[example_writing_to_csv] Product category average dimensions finished successfully!"
+    )
+
+
+def _number_of_orders_by_days_of_week(conn):
+    def to_english_day_of_week(day_of_week: int) -> str:
+        english_days_of_week = {
+            1: "monday",
+            2: "tuesday",
+            3: "wednesday",
+            4: "thursday",
+            5: "friday",
+            6: "saturday",
+            7: "sunday",
+        }
+        return english_days_of_week[day_of_week]
+
+    print("[example_writing_to_csv] Number of orders by days of week starting...")
+    sql = """
+        SELECT extract(isodow from purchase_timestamp) as day_of_week, COUNT(*) 
+        from orders o 
+        group by day_of_week 
+        order by day_of_week; 
+    """
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    cursor.close()
+
+    csvfile_path = os.path.join(CSV_DIR, "number_of_orders_by_day_of_week.csv")
+    with open(csvfile_path, mode="w") as csvfile:
+        writer = csv.DictWriter(
+            csvfile,
+            fieldnames=[
+                "day_of_week",
+                "number_of_orders",
+            ],
+        )
+        writer.writeheader()
+        for row in result:
+            row_data = {
+                "day_of_week": to_english_day_of_week(row[0]),
+                "number_of_orders": row[1],
+            }
+            writer.writerow(row_data)
+    print(
+        "[example_writing_to_csv] Number of orders by days of week finished successfully!"
+    )
