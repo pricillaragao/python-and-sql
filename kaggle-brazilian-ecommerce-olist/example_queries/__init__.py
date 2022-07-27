@@ -42,7 +42,8 @@ def _example_queries(conn):
     print("[example_queries] Starting...")
     customers = _select_all_customers(conn=conn)
     random_customer = random.choice(customers)
-    _select_one_customer(conn, random_customer[0])
+    _select_one_customer(conn=conn, customer_id=random_customer[0])
+    _biggest_sellers_by_number_of_order_items(conn=conn)
     print("[example_queries] Finished successfully!")
 
 
@@ -67,3 +68,21 @@ def _select_one_customer(conn, customer_id: str):
     cursor.close()
     print(result)
     print("[example_queries] Select one customer finished successfully!")
+
+
+def _biggest_sellers_by_number_of_order_items(conn):
+    print("[example_queries] Biggest sellers by number of order items starting...")
+    sql = """
+        SELECT seller_id, COUNT(*) 
+        FROM order_items
+        GROUP BY seller_id
+        ORDER BY COUNT DESC;
+    """
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    cursor.close()
+    print(result)
+    print(
+        "[example_queries] Biggest sellers by number of order items finished successfully!"
+    )
